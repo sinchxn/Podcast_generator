@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os" // To fetch environment variables
 
 	twitterscraper "github.com/imperatrona/twitter-scraper"
 )
@@ -17,8 +18,19 @@ type Tweet struct {
 func main() {
 	scraper := twitterscraper.New()
 
-	// Set up authentication (you'll need to replace these with your actual credentials)
-	scraper.SetAuthToken(twitterscraper.AuthToken{Token: "9e918c71af7b13dfbd8e24daeeca6ce655905653", CSRFToken: "ac60b58809c0705f0611997e4527696f8d9cca79988ff0e9c9440835f00de72026d051ad925fdd2a3c5c71405d747bf6ad3e59bc5fda9021709fae4b298c48371be7633aa251575c07d8f5aaf288c4ac"})
+	// Get the token and CSRF token from environment variables
+	token := os.Getenv("TWITTER_AUTH_TOKEN")
+	csrfToken := os.Getenv("TWITTER_CSRF_TOKEN")
+
+	if token == "" || csrfToken == "" {
+		log.Fatal("Missing authentication tokens")
+	}
+
+	// Set up authentication using environment variables
+	scraper.SetAuthToken(twitterscraper.AuthToken{
+		Token:     token,
+		CSRFToken: csrfToken,
+	})
 
 	// Check if login is successful
 	if !scraper.IsLoggedIn() {
@@ -45,6 +57,13 @@ func main() {
 		json.NewEncoder(w).Encode(tweets)
 	})
 
-	fmt.Println("Server is running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	// Get the port from the environment variable (Render provides it dynamically)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // Fallback to 8080 if no port is provided
+	}
+
+	// Start the server
+	fmt.Printf("Server is running on port %s\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
