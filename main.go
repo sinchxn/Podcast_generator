@@ -45,7 +45,7 @@ func main() {
 		}
 
 		tweets := []Tweet{}
-		for tweet := range scraper.SearchTweets(context.Background(), query, 100) {
+		for tweet := range scraper.SearchTweets(context.Background(), query, 2) {
 			if tweet.Error != nil {
 				log.Printf("Error: %v\n", tweet.Error)
 				continue
